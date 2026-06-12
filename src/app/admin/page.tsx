@@ -17,38 +17,68 @@ export default async function AdminHomePage() {
   ]);
 
   return (
-    <div className="shell section">
-      <AdminNav />
-      <section className="section grid">
-        <div className="metric">
-          <span>Jogos</span>
-          <strong>{matchCount}</strong>
+    <div className="admin-page">
+      <div className="admin-topbar">
+        <div className="shell">
+          <AdminNav />
         </div>
-        <div className="metric">
-          <span>Participantes</span>
-          <strong>{participantCount}</strong>
+      </div>
+
+      <div className="shell admin-body">
+        <div className="admin-welcome">
+          <div>
+            <h1 className="admin-title">{poolConfig.title}</h1>
+            <p className="admin-subtitle">Painel de administração · Copa 2026</p>
+          </div>
+          <span className="admin-badge">Admin</span>
         </div>
-        <div className="metric">
-          <span>Pagos</span>
-          <strong>{paidParticipants}</strong>
+
+        <div className="grid admin-metrics">
+          <div className="metric admin-metric">
+            <span>Jogos</span>
+            <strong>{matchCount}</strong>
+          </div>
+          <div className="metric admin-metric">
+            <span>Participantes</span>
+            <strong>{participantCount}</strong>
+          </div>
+          <div className="metric admin-metric">
+            <span>Pagos</span>
+            <strong>{paidParticipants}</strong>
+          </div>
+          <div className="metric admin-metric metric-accent">
+            <span>Premio total</span>
+            <strong>{formatCurrency(prizes.total)}</strong>
+          </div>
         </div>
-        <div className="metric">
-          <span>Premio total</span>
-          <strong>{formatCurrency(prizes.total)}</strong>
-        </div>
-      </section>
-      <section className="section card">
-        <h1>{poolConfig.title}</h1>
-        <p>Use a administracao para cadastrar jogos, fechar resultados e validar pagamentos PIX.</p>
-        <div className="nav">
-          <Link className="button primary" href="/admin/matches">
-            Gerenciar jogos
+
+        <div className="admin-actions">
+          <Link className="admin-action-card" href="/admin/matches">
+            <span className="admin-action-icon">⚽</span>
+            <div className="admin-action-body">
+              <strong>Gerenciar jogos</strong>
+              <p>Cadastre partidas e registre os resultados</p>
+            </div>
+            <span className="admin-action-arrow">→</span>
           </Link>
-          <Link className="button" href="/admin/participants">
-            Validar pagamentos
+          <Link className="admin-action-card" href="/admin/participants">
+            <span className="admin-action-icon">💳</span>
+            <div className="admin-action-body">
+              <strong>Validar pagamentos</strong>
+              <p>Confirme os pagamentos PIX dos participantes</p>
+            </div>
+            <span className="admin-action-arrow">→</span>
+          </Link>
+          <Link className="admin-action-card" href="/admin/ranking">
+            <span className="admin-action-icon">🏆</span>
+            <div className="admin-action-body">
+              <strong>Ver ranking</strong>
+              <p>Classificação completa com pontos e status</p>
+            </div>
+            <span className="admin-action-arrow">→</span>
           </Link>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

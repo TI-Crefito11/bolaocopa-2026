@@ -1,6 +1,8 @@
+import Image from 'next/image';
 import { submitBet } from '@/lib/public-actions';
 import { formatDateTime } from '@/lib/money';
 import { prisma } from '@/lib/prisma';
+import { PhoneInput } from '@/components/PhoneInput';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,54 +19,100 @@ export default async function BetPage({ searchParams }: BetPageProps) {
   const now = new Date();
 
   return (
-    <div className="shell section">
-      <div className="card">
-        <h1>Fazer aposta</h1>
-        {params.success ? <p className="notice">Aposta registrada. O pagamento ficara pendente ate validacao do admin.</p> : null}
-        {params.error ? <p className="notice error">{getBetErrorMessage(params.error)}</p> : null}
+    <div className="bet-page">
+      <div className="bet-hero">
+        <div className="shell hero-inner">
+          <div>
+            <p className="eyebrow">Copa 2026</p>
+            <h1>Fazer aposta</h1>
+            <p>Preencha seus dados e palpite nos placares dos jogos do Brasil.</p>
+          </div>
+          <Image src="/LogoBolao.jpeg" alt="Logo Bolão" width={72} height={72} className="subpage-hero-logo" />
+        </div>
+      </div>
+
+      <div className="shell bet-body">
+        {params.success ? (
+          <p className="notice">Aposta registrada. O pagamento ficara pendente ate validacao do admin.</p>
+        ) : null}
+        {params.error ? (
+          <p className="notice error">{getBetErrorMessage(params.error)}</p>
+        ) : null}
+
         <form className="stack" action={submitBet}>
-          <div className="grid">
-            <label>
-              Nome
-              <input name="name" minLength={2} required />
-            </label>
-            <label>
-              Email
-              <input name="email" type="email" required />
-            </label>
-            <label>
-              Telefone
-              <input name="phone" minLength={8} required />
-            </label>
+          <div className="bet-section-card">
+            <h2 className="bet-section-label">Seus dados</h2>
+            <div className="grid">
+              <label>
+                Nome
+                <input name="name" minLength={2} required placeholder="Seu nome completo" />
+              </label>
+              <label>
+                Email
+                <input name="email" type="email" required placeholder="seu@email.com" />
+              </label>
+              <label>
+                Telefone
+                <PhoneInput />
+              </label>
+            </div>
           </div>
 
-          <h2>Palpites</h2>
-          {matches.map((match) => {
-            const closed = match.betDeadlineAt <= now;
-            return (
-              <div className="bet-match" key={match.id}>
-                <div className="score-inputs">
-                  <div>
-                    <strong>Brasil x {match.opponent}</strong>
-                    <p>Limite: {formatDateTime(match.betDeadlineAt)}</p>
-                    {closed ? <p className="notice error">Apostas encerradas para este jogo.</p> : null}
+          <div className="bet-section-card">
+            <h2 className="bet-section-label">Palpites</h2>
+            <div className="stack">
+              {matches.map((match) => {
+                const closed = match.betDeadlineAt <= now;
+                return (
+                  <div className={`bet-match${closed ? ' bet-match--closed' : ''}`} key={match.id}>
+                    <div className="bet-match-header">
+                      <div>
+                        <strong className="bet-match-title">🇧🇷 Brasil × {match.opponent}</strong>
+                        <span className="bet-match-deadline">Limite: {formatDateTime(match.betDeadlineAt)}</span>
+                      </div>
+                      {closed ? <span className="status-badge status-badge-yellow">Encerrado</span> : null}
+                    </div>
+                    <div className="bet-score-row">
+                      <label className="score-col">
+                        <span className="score-team">Brasil</span>
+                        <input
+                          className="score-input"
+                          name={`match-${match.id}-brazil`}
+                          type="number"
+                          min={0}
+                          max={99}
+                          disabled={closed}
+                          placeholder="0"
+                        />
+                      </label>
+                      <span className="score-sep">×</span>
+                      <label className="score-col">
+                        <span className="score-team">{match.opponent}</span>
+                        <input
+                          className="score-input"
+                          name={`match-${match.id}-opponent`}
+                          type="number"
+                          min={0}
+                          max={99}
+                          disabled={closed}
+                          placeholder="0"
+                        />
+                      </label>
+                    </div>
                   </div>
-                  <label>
-                    Brasil
-                    <input name={`match-${match.id}-brazil`} type="number" min={0} max={99} disabled={closed} />
-                  </label>
-                  <label>
-                    {match.opponent}
-                    <input name={`match-${match.id}-opponent`} type="number" min={0} max={99} disabled={closed} />
-                  </label>
-                </div>
-              </div>
-            );
-          })}
-          {matches.length === 0 ? <p>Nenhum jogo disponivel.</p> : null}
-          <button className="button primary" type="submit">
-            Enviar aposta
-          </button>
+                );
+              })}
+              {matches.length === 0 ? (
+                <p className="bet-empty">Nenhum jogo disponivel para apostas no momento.</p>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="bet-submit-row">
+            <button className="button primary bet-submit-btn" type="submit">
+              Enviar aposta
+            </button>
+          </div>
         </form>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { StatusBadge } from '@/components/StatusBadge';
 import { poolConfig } from '@/lib/config';
@@ -18,6 +19,14 @@ export default async function HomePage() {
     <div className="shell">
       <section className="hero">
         <div className="hero-panel">
+          <Image
+            src="/LogoBolao.jpeg"
+            alt="Logo Bolão"
+            width={88}
+            height={88}
+            className="hero-logo"
+            priority
+          />
           <span className="eyebrow">Copa 2026 - jogos do Brasil</span>
           <h1>Rumo ao Hexa</h1>
           <p>
@@ -44,16 +53,20 @@ export default async function HomePage() {
       <section className="section grid">
         <div className="card">
           <h2>Premiacao</h2>
-          <p>1o lugar: 70%</p>
-          <p>2o lugar: 20%</p>
-          <p>3o lugar: 10%</p>
+          <ul className="info-list">
+            <li><span className="info-medal">🥇</span> 1º lugar — 70%</li>
+            <li><span className="info-medal">🥈</span> 2º lugar — 20%</li>
+            <li><span className="info-medal">🥉</span> 3º lugar — 10%</li>
+          </ul>
         </div>
         <div className="card">
           <h2>Pontuacao</h2>
-          <p>Placar exato: 10 pontos</p>
-          <p>Vencedor ou empate: 5 pontos</p>
-          <p>Apenas gols do Brasil: 3 pontos</p>
-          <p>Apenas gols do adversario: 3 pontos</p>
+          <ul className="info-list">
+            <li><span className="info-pts">10</span> Placar exato</li>
+            <li><span className="info-pts">5</span> Vencedor ou empate</li>
+            <li><span className="info-pts">3</span> Apenas gols do Brasil</li>
+            <li><span className="info-pts">3</span> Apenas gols do adversario</li>
+          </ul>
         </div>
       </section>
 
