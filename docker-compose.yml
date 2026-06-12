@@ -12,7 +12,7 @@ services:
       PIX_KEY: ${PIX_KEY:-61993043994}
       APP_TIMEZONE: ${APP_TIMEZONE:-America/Sao_Paulo}
     networks:
-      - ${TRAEFIK_NETWORK:-traefik-public}
+      - CrefitoNet
     deploy:
       replicas: ${APP_REPLICAS:-1}
       update_config:
@@ -23,15 +23,17 @@ services:
       restart_policy:
         condition: on-failure
       labels:
-        - traefik.enable=true
-        - traefik.docker.network=${TRAEFIK_NETWORK:-traefik-public}
-        - traefik.http.routers.bolaocopa.rule=Host(`${DOMAIN}`)
-        - traefik.http.routers.bolaocopa.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
-        - traefik.http.routers.bolaocopa.tls=true
-        - traefik.http.routers.bolaocopa.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
-        - traefik.http.services.bolaocopa.loadbalancer.server.port=80
+        - "traefik.enable=true"
+        - "traefik.http.routers.bolaocopa.rule=Host(`bolao.crefito.gov.br`)"
+        - "traefik.http.routers.bolaocopa.entrypoints=websecure"
+        - "traefik.http.routers.bolaocopa.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.bolaocopa.loadbalancer.server.port=80"
+        - "traefik.http.middlewares.bolaocopa-noindex.headers.customResponseHeaders.X-Robots-Tag=noindex, nofollow"
+        - "traefik.http.routers.bolaocopa.middlewares=site-noindex"
+    ports:
+      - "8080:80"
 
 networks:
   CrefitoNet:
     external: true
-    name: ${TRAEFIK_NETWORK:-traefik-public}
+    name: CrefitoNet
