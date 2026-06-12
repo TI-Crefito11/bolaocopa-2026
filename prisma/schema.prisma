@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  CANCELED
+}
+
+enum MatchStatus {
+  SCHEDULED
+  CLOSED
+  FINISHED
+}
+
+model AdminUser {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Participant {
+  id            Int           @id @default(autoincrement())
+  name          String
+  email         String
+  phone         String
+  paymentStatus PaymentStatus @default(PENDING)
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  bets          Bet[]
+
+  @@unique([email, phone])
+}
+
+model Match {
+  id             Int         @id @default(autoincrement())
+  opponent       String
+  kickoffAt      DateTime
+  betDeadlineAt  DateTime
+  status         MatchStatus @default(SCHEDULED)
+  brazilGoals    Int?
+  opponentGoals  Int?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  bets           Bet[]
+
+  @@index([kickoffAt])
+}
+
+model Bet {
+  id            Int         @id @default(autoincrement())
+  participantId Int
+  matchId       Int
+  brazilGoals   Int
+  opponentGoals Int
+  submittedAt   DateTime    @default(now())
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  match         Match       @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([participantId, matchId])
+  @@index([matchId])
+}
