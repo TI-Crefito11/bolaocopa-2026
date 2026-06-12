@@ -30,8 +30,6 @@ services:
         - "traefik.http.services.bolaocopa.loadbalancer.server.port=80"
         - "traefik.http.middlewares.bolaocopa-noindex.headers.customResponseHeaders.X-Robots-Tag=noindex, nofollow"
         - "traefik.http.routers.bolaocopa.middlewares=site-noindex"
-    ports:
-      - "8080:80"
 
 networks:
   CrefitoNet:

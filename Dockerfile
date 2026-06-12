@@ -23,7 +23,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=127.0.0.1
-ENV PORT=3002
+ENV PORT=3000
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends apache2 \
