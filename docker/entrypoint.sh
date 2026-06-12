@@ -1,6 +1,8 @@
 #!/bin/sh
 set -eu
 
+mkdir -p /var/run/apache2
+
 node server.js &
 next_pid="$!"
 

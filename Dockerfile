@@ -44,7 +44,7 @@ COPY --from=builder /app/scripts ./scripts
 
 RUN a2ensite 000-default \
   && chmod +x /usr/local/bin/docker-entrypoint \
-  && chown -R www-data:www-data /var/www/html /var/log/apache2 /var/run/apache2 /app
+  && chown -R www-data:www-data /var/www/html /var/log/apache2 /app
 
 EXPOSE 80
 
