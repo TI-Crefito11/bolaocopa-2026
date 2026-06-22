@@ -1,6 +1,7 @@
 import 'dotenv/config';
+import { getPoolFinancials } from '../src/lib/pool-financials';
 import { prisma } from '../src/lib/prisma';
-import { calculatePrizes, buildRanking } from '../src/lib/scoring';
+import { buildRanking } from '../src/lib/scoring';
 
 function formatCurrency(cents: number): string {
   return new Intl.NumberFormat('pt-BR', {
@@ -10,8 +11,7 @@ function formatCurrency(cents: number): string {
 }
 
 async function main() {
-  const entryFeeCents = Number(process.env.ENTRY_FEE_CENTS ?? 1000);
-  const [participants, paidParticipants] = await Promise.all([
+  const [participants, financials] = await Promise.all([
     prisma.participant.findMany({
       include: {
         bets: {
@@ -21,16 +21,15 @@ async function main() {
         },
       },
     }),
-    prisma.participant.count({
-      where: {
-        paymentStatus: 'PAID',
-      },
-    }),
+    getPoolFinancials(),
   ]);
   const ranking = buildRanking(participants);
-  const prizes = calculatePrizes(paidParticipants, entryFeeCents);
+  const { prizes } = financials;
 
-  console.log(`Participantes pagos: ${paidParticipants}`);
+  console.log(`Participantes pagos: ${financials.paidParticipants}`);
+  console.log(`Base pagamentos: ${formatCurrency(financials.baseRevenueCents)}`);
+  console.log(`Entradas manuais: ${formatCurrency(financials.manualAdditionsCents)}`);
+  console.log(`Retiradas manuais: ${formatCurrency(financials.manualRemovalsCents)}`);
   console.log(`Premio total: ${formatCurrency(prizes.total)}`);
   console.log(`1o: ${formatCurrency(prizes.first)} | 2o: ${formatCurrency(prizes.second)} | 3o: ${formatCurrency(prizes.third)}`);
   console.table(

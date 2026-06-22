@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildRanking, calculatePrizes, scoreBet } from '@/lib/scoring';
+import { canRemoveFromPool, calculatePoolFinancials } from '@/lib/pool-financials';
+import { buildRanking, calculatePrizeDistribution, calculatePrizes, scoreBet } from '@/lib/scoring';
 
 describe('scoreBet', () => {
   const actual = {
@@ -97,5 +98,45 @@ describe('calculatePrizes', () => {
       second: 2000,
       third: 1000,
     });
+  });
+
+  it('splits a dynamic revenue total into 70, 20 and 10 percent prizes', () => {
+    expect(calculatePrizeDistribution(10500)).toEqual({
+      total: 10500,
+      first: 7350,
+      second: 2100,
+      third: 1050,
+    });
+  });
+});
+
+describe('calculatePoolFinancials', () => {
+  it('adds manual entries to paid participant revenue', () => {
+    const financials = calculatePoolFinancials({
+      paidParticipants: 10,
+      entryFeeCents: 1000,
+      transactions: [{ kind: 'ADD', amountCents: 500 }],
+    });
+
+    expect(financials.totalRevenueCents).toBe(10500);
+    expect(financials.manualAdditionsCents).toBe(500);
+    expect(financials.prizes.total).toBe(10500);
+  });
+
+  it('subtracts manual removals from paid participant revenue', () => {
+    const financials = calculatePoolFinancials({
+      paidParticipants: 10,
+      entryFeeCents: 1000,
+      transactions: [{ kind: 'REMOVE', amountCents: 300 }],
+    });
+
+    expect(financials.totalRevenueCents).toBe(9700);
+    expect(financials.manualRemovalsCents).toBe(300);
+    expect(financials.prizes.total).toBe(9700);
+  });
+
+  it('blocks removals greater than the available pool total', () => {
+    expect(canRemoveFromPool(10001, 10000)).toBe(false);
+    expect(canRemoveFromPool(10000, 10000)).toBe(true);
   });
 });

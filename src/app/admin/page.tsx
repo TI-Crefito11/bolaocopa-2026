@@ -2,18 +2,18 @@ import Link from 'next/link';
 import { AdminNav } from '@/components/AdminNav';
 import { poolConfig } from '@/lib/config';
 import { formatCurrency } from '@/lib/money';
+import { getPoolFinancials } from '@/lib/pool-financials';
 import { prisma } from '@/lib/prisma';
-import { getRankingData } from '@/lib/ranking-data';
 import { requireAdminSession } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminHomePage() {
   await requireAdminSession();
-  const [matchCount, participantCount, { prizes, paidParticipants }] = await Promise.all([
+  const [matchCount, participantCount, financials] = await Promise.all([
     prisma.match.count(),
     prisma.participant.count(),
-    getRankingData(),
+    getPoolFinancials(),
   ]);
 
   return (
@@ -44,11 +44,11 @@ export default async function AdminHomePage() {
           </div>
           <div className="metric admin-metric">
             <span>Pagos</span>
-            <strong>{paidParticipants}</strong>
+            <strong>{financials.paidParticipants}</strong>
           </div>
           <div className="metric admin-metric metric-accent">
             <span>Premio total</span>
-            <strong>{formatCurrency(prizes.total)}</strong>
+            <strong>{formatCurrency(financials.prizes.total)}</strong>
           </div>
         </div>
 
@@ -66,6 +66,14 @@ export default async function AdminHomePage() {
             <div className="admin-action-body">
               <strong>Validar pagamentos</strong>
               <p>Confirme os pagamentos PIX dos participantes</p>
+            </div>
+            <span className="admin-action-arrow">→</span>
+          </Link>
+          <Link className="admin-action-card" href="/admin/finance">
+            <span className="admin-action-icon">R$</span>
+            <div className="admin-action-body">
+              <strong>Controlar caixa</strong>
+              <p>Registre entradas e retiradas manuais do bolão</p>
             </div>
             <span className="admin-action-arrow">→</span>
           </Link>

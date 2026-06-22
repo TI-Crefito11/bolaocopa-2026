@@ -20,6 +20,11 @@ enum MatchStatus {
   FINISHED
 }
 
+enum PoolTransactionKind {
+  ADD
+  REMOVE
+}
+
 model AdminUser {
   id           Int      @id @default(autoincrement())
   name         String
@@ -28,6 +33,7 @@ model AdminUser {
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  poolTransactions PoolTransaction[]
 }
 
 model Participant {
@@ -71,4 +77,17 @@ model Bet {
 
   @@unique([participantId, matchId])
   @@index([matchId])
+}
+
+model PoolTransaction {
+  id          Int                 @id @default(autoincrement())
+  kind        PoolTransactionKind
+  amountCents Int
+  description String
+  createdAt   DateTime            @default(now())
+  createdById Int
+  createdBy   AdminUser           @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([createdAt])
+  @@index([createdById])
 }

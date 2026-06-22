@@ -1,9 +1,9 @@
-import { poolConfig } from '@/lib/config';
+import { getPoolFinancials } from '@/lib/pool-financials';
 import { prisma } from '@/lib/prisma';
-import { buildRanking, calculatePrizes } from '@/lib/scoring';
+import { buildRanking } from '@/lib/scoring';
 
 export async function getRankingData() {
-  const [participants, paidParticipants] = await Promise.all([
+  const [participants, financials] = await Promise.all([
     prisma.participant.findMany({
       include: {
         bets: {
@@ -13,16 +13,13 @@ export async function getRankingData() {
         },
       },
     }),
-    prisma.participant.count({
-      where: {
-        paymentStatus: 'PAID',
-      },
-    }),
+    getPoolFinancials(),
   ]);
 
   return {
     ranking: buildRanking(participants),
-    prizes: calculatePrizes(paidParticipants, poolConfig.entryFeeCents),
-    paidParticipants,
+    prizes: financials.prizes,
+    paidParticipants: financials.paidParticipants,
+    financials,
   };
 }

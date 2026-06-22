@@ -4,12 +4,14 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { hashPassword, verifyPassword } from '@/lib/password';
+import { canRemoveFromPool, getPoolFinancials } from '@/lib/pool-financials';
 import { prisma } from '@/lib/prisma';
 import { clearAdminSession, requireAdminSession, setAdminSession } from '@/lib/session';
 
 const goalsSchema = z.coerce.number().int().min(0).max(99);
 const matchStatusSchema = z.enum(['SCHEDULED', 'CLOSED', 'FINISHED']);
 const paymentStatusSchema = z.enum(['PENDING', 'PAID', 'CANCELED']);
+const poolTransactionKindSchema = z.enum(['ADD', 'REMOVE']);
 
 export async function loginAdmin(formData: FormData): Promise<void> {
   const email = String(formData.get('email') ?? '').trim().toLowerCase();
@@ -77,7 +79,11 @@ export async function updatePaymentStatus(formData: FormData): Promise<void> {
       paidAt: paymentStatus === 'PAID' ? new Date() : null,
     },
   });
+  revalidatePath('/');
+  revalidatePath('/admin');
   revalidatePath('/admin/participants');
+  revalidatePath('/admin/finance');
+  revalidatePath('/admin/ranking');
   revalidatePath('/ranking');
 }
 
@@ -86,8 +92,41 @@ export async function deleteParticipant(formData: FormData): Promise<void> {
   const id = Number(formData.get('id'));
   if (id) await prisma.participant.delete({ where: { id } });
   revalidatePath('/');
+  revalidatePath('/admin');
+  revalidatePath('/admin/finance');
   revalidatePath('/admin/participants');
+  revalidatePath('/admin/ranking');
   revalidatePath('/ranking');
+}
+
+export async function createPoolTransaction(formData: FormData): Promise<void> {
+  const current = await requireAdminSession();
+  const kind = poolTransactionKindSchema.parse(formData.get('kind') ?? 'ADD');
+  const amountCents = parseCurrencyCents(formData.get('amount'));
+  const description = String(formData.get('description') ?? '').trim();
+
+  if (amountCents <= 0 || !description) {
+    redirect('/admin/finance?error=invalid');
+  }
+
+  if (kind === 'REMOVE') {
+    const financials = await getPoolFinancials();
+    if (!canRemoveFromPool(amountCents, financials.totalRevenueCents)) {
+      redirect('/admin/finance?error=insufficient');
+    }
+  }
+
+  await prisma.$executeRaw`
+    INSERT INTO PoolTransaction (kind, amountCents, description, createdById)
+    VALUES (${kind}, ${amountCents}, ${description}, ${current.adminId})
+  `;
+
+  revalidatePath('/');
+  revalidatePath('/ranking');
+  revalidatePath('/admin');
+  revalidatePath('/admin/finance');
+  revalidatePath('/admin/ranking');
+  redirect('/admin/finance');
 }
 
 export async function createAdminUser(formData: FormData): Promise<void> {
@@ -129,4 +168,14 @@ export async function deleteAdminUser(formData: FormData): Promise<void> {
 function nullableGoals(value: FormDataEntryValue | null): number | null {
   if (value === null || String(value).trim() === '') return null;
   return goalsSchema.parse(value);
+}
+
+function parseCurrencyCents(value: FormDataEntryValue | null): number {
+  const raw = String(value ?? '').trim();
+  const normalized = raw.includes(',')
+    ? raw.replace(/\./g, '').replace(',', '.')
+    : raw;
+  const amount = Number(normalized);
+  if (!Number.isFinite(amount)) return 0;
+  return Math.round(amount * 100);
 }

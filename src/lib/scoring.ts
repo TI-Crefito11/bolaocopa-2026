@@ -132,12 +132,15 @@ export function buildRanking(participants: RankingParticipant[]): RankingRow[] {
     });
 }
 
-export function calculatePrizes(paidParticipants: number, entryFeeCents: number) {
-  const total = paidParticipants * entryFeeCents;
+export function calculatePrizeDistribution(total: number) {
   return {
     total,
     first: Math.floor(total * 0.7),
     second: Math.floor(total * 0.2),
     third: total - Math.floor(total * 0.7) - Math.floor(total * 0.2),
   };
+}
+
+export function calculatePrizes(paidParticipants: number, entryFeeCents: number) {
+  return calculatePrizeDistribution(paidParticipants * entryFeeCents);
 }

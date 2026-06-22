@@ -1,4 +1,5 @@
 import { AdminNav } from '@/components/AdminNav';
+import { MatchEditModal } from '@/components/MatchEditModal';
 import { StatusBadge, formatStatus } from '@/components/StatusBadge';
 import { deleteMatch, upsertMatch } from '@/lib/admin-actions';
 import { formatDateTime } from '@/lib/money';
@@ -89,8 +90,7 @@ export default async function MatchesPage({ searchParams }: MatchesPageProps) {
                       )}
                     </td>
                     <td className="match-actions-cell">
-                      <details className="match-edit-details">
-                        <summary className="button match-edit-toggle">Editar</summary>
+                      <MatchEditModal title={`Brasil x ${match.opponent}`}>
                         <form className="match-inline-form" action={upsertMatch}>
                           <input name="id" type="hidden" value={match.id} />
                           <fieldset className="form-group">
@@ -133,7 +133,7 @@ export default async function MatchesPage({ searchParams }: MatchesPageProps) {
                           </fieldset>
                           <button className="button primary" type="submit">Salvar alterações</button>
                         </form>
-                      </details>
+                      </MatchEditModal>
                       <form action={deleteMatch}>
                         <input name="id" type="hidden" value={match.id} />
                         <button className="button danger" type="submit">Excluir</button>

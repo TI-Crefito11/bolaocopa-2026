@@ -946,6 +946,20 @@ select:focus {
   color: var(--muted);
 }
 
+.finance-positive,
+.finance-negative {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.finance-positive {
+  color: #166534;
+}
+
+.finance-negative {
+  color: var(--danger);
+}
+
 .participant-bets {
   display: flex;
   flex-direction: column;
@@ -1054,24 +1068,6 @@ select:focus {
   flex-direction: column;
   gap: 8px;
   min-width: 110px;
-  position: relative;
-}
-
-.match-edit-details {
-  position: static;
-}
-
-.match-edit-details summary {
-  list-style: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-}
-
-.match-edit-details summary::-webkit-details-marker {
-  display: none;
 }
 
 .match-edit-toggle {
@@ -1084,22 +1080,69 @@ select:focus {
   font-size: 0.85rem;
 }
 
-.match-edit-details[open] .match-edit-toggle {
-  border-color: var(--primary);
-  color: var(--primary);
+.match-modal {
+  width: min(640px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  padding: 0;
+  color: var(--foreground);
+}
+
+.match-modal::backdrop {
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(3px);
+}
+
+.match-modal-panel {
+  display: grid;
+  max-height: calc(100vh - 32px);
+  overflow: hidden;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  box-shadow: 0 22px 70px rgba(15, 23, 42, 0.28);
+}
+
+.match-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px;
+  border-bottom: 1.5px solid var(--line);
+}
+
+.match-modal-header .bet-section-label {
+  display: block;
+  margin: 0 0 6px !important;
+}
+
+.match-modal-header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.match-modal-close {
+  min-width: 38px;
+  padding: 7px 10px;
+}
+
+.match-modal-body {
+  overflow-y: auto;
+  padding: 22px;
+}
+
+.match-modal-secondary-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 22px 22px;
 }
 
 .match-inline-form {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 4px);
-  z-index: 30;
-  width: 420px;
-  background: var(--card-bg);
-  border: 1.5px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-md);
-  padding: 20px;
   display: grid;
   gap: 14px;
 }
@@ -1380,6 +1423,24 @@ select:focus {
   .prize-value {
     font-size: 1.05rem;
   }
+
+  .match-modal {
+    width: calc(100vw - 24px);
+    max-height: calc(100vh - 24px);
+  }
+
+  .match-modal-panel {
+    max-height: calc(100vh - 24px);
+  }
+
+  .match-modal-header,
+  .match-modal-body {
+    padding: 18px;
+  }
+
+  .match-modal-secondary-actions {
+    padding: 0 18px 18px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1413,5 +1474,14 @@ select:focus {
   .hero-logo {
     width: 64px;
     height: 64px;
+  }
+
+  .match-modal-header {
+    gap: 10px;
+  }
+
+  .match-modal-secondary-actions .button,
+  .match-inline-form .button.primary {
+    width: 100%;
   }
 }

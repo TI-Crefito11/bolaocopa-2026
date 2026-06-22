@@ -3,17 +3,16 @@ import Link from 'next/link';
 import { StatusBadge } from '@/components/StatusBadge';
 import { poolConfig } from '@/lib/config';
 import { formatCurrency, formatDateTime } from '@/lib/money';
+import { getPoolFinancials } from '@/lib/pool-financials';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const [matches, paidParticipants] = await Promise.all([
+  const [matches, financials] = await Promise.all([
     prisma.match.findMany({ orderBy: { kickoffAt: 'asc' } }),
-    prisma.participant.count({ where: { paymentStatus: 'PAID' } }),
+    getPoolFinancials(),
   ]);
-
-  const totalCents = paidParticipants * poolConfig.entryFeeCents;
 
   return (
     <div className="shell">
@@ -45,7 +44,7 @@ export default async function HomePage() {
           </div>
           <div className="metric">
             <span>Arrecadado confirmado</span>
-            <strong>{formatCurrency(totalCents)}</strong>
+            <strong>{formatCurrency(financials.totalRevenueCents)}</strong>
           </div>
         </div>
       </section>
