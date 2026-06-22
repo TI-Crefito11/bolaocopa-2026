@@ -7,6 +7,7 @@ export function AdminNav() {
       <nav className="admin-nav" aria-label="Administracao">
         <Link href="/admin">Resumo</Link>
         <Link href="/admin/matches">Jogos</Link>
+        <Link href="/admin/players">Jogadores</Link>
         <Link href="/admin/participants">Participantes</Link>
         <Link href="/admin/finance">Caixa</Link>
         <Link href="/admin/ranking">Ranking</Link>

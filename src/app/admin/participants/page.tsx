@@ -14,6 +14,10 @@ export default async function ParticipantsPage() {
       bets: {
         include: {
           match: true,
+          scorers: {
+            include: { player: true },
+            orderBy: { position: 'asc' },
+          },
         },
         orderBy: {
           submittedAt: 'asc',
@@ -88,6 +92,7 @@ export default async function ParticipantsPage() {
                         {participant.bets.map((bet) => (
                           <span key={bet.id} className="participant-bet-item">
                             🇧🇷 {bet.brazilGoals} × {bet.opponentGoals} {bet.match.opponent}
+                            {bet.scorers.length > 0 ? ` · ${bet.scorers.map((scorer) => scorer.player.name).join(', ')}` : ''}
                           </span>
                         ))}
                         {participant.bets.length === 0 ? (

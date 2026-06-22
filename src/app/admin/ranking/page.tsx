@@ -62,6 +62,7 @@ export default async function AdminRankingPage() {
                   <th>Vencedor/empate</th>
                   <th>Gols Brasil</th>
                   <th>Gols adv.</th>
+                  <th>Goleadores</th>
                   <th>Pagamento</th>
                   <th>1ª Aposta</th>
                 </tr>
@@ -80,6 +81,7 @@ export default async function AdminRankingPage() {
                     <td>{row.outcomeHits}</td>
                     <td>{row.brazilGoalsHits}</td>
                     <td>{row.opponentGoalsHits}</td>
+                    <td>{row.brazilScorerHits}</td>
                     <td><StatusBadge status={row.paymentStatus} /></td>
                     <td className="ranking-date">
                       {row.firstSubmittedAt ? formatDateTime(row.firstSubmittedAt) : '-'}
@@ -88,7 +90,7 @@ export default async function AdminRankingPage() {
                 ))}
                 {ranking.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="ranking-empty">Nenhuma aposta registrada ainda.</td>
+                    <td colSpan={10} className="ranking-empty">Nenhuma aposta registrada ainda.</td>
                   </tr>
                 ) : null}
               </tbody>

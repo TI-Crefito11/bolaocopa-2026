@@ -587,7 +587,7 @@ select:focus {
 
 .bet-score-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   padding: 16px 18px;
   justify-content: center;
@@ -600,6 +600,17 @@ select:focus {
   gap: 6px;
   font-weight: 600;
   font-size: 0.9rem;
+}
+
+.score-col-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.score-col-brazil {
+  min-width: 180px;
 }
 
 .score-team {
@@ -648,6 +659,42 @@ select:focus {
   color: var(--muted);
   line-height: 1;
   padding-top: 22px;
+}
+
+.scorer-select-list {
+  width: min(260px, 100%);
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.scorer-select-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.scorer-select-empty {
+  font-size: 0.8rem;
+  color: var(--danger);
+}
+
+.scorer-select-field {
+  display: grid;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.scorer-select-field select {
+  min-height: 38px;
+  font-size: 0.86rem;
 }
 
 .bet-submit-row {
@@ -1323,6 +1370,13 @@ select:focus {
   font-weight: 700;
   letter-spacing: -0.01em;
   flex-shrink: 0;
+}
+
+.info-note {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
 }
 
 /* ── Misc ── */

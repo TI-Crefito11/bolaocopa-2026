@@ -35,8 +35,46 @@ describe('scoreBet', () => {
         actualOpponentGoals: null,
         betBrazilGoals: 2,
         betOpponentGoals: 1,
+        actualBrazilScorerIds: [1, 2],
+        betBrazilScorerIds: [1, 2],
       }).points,
     ).toBe(0);
+  });
+
+  it('adds 4 points per Brazil scorer hit', () => {
+    expect(
+      scoreBet({
+        ...actual,
+        betBrazilGoals: 3,
+        betOpponentGoals: 1,
+        actualBrazilScorerIds: [1, 2, 3],
+        betBrazilScorerIds: [1, 2, 4],
+      }).points,
+    ).toBe(18);
+  });
+
+  it('scores repeated scorers by occurrence', () => {
+    expect(
+      scoreBet({
+        ...actual,
+        betBrazilGoals: 3,
+        betOpponentGoals: 1,
+        actualBrazilScorerIds: [1, 1, 2],
+        betBrazilScorerIds: [1, 1, 3],
+      }).points,
+    ).toBe(18);
+  });
+
+  it('does not require scorer order to match', () => {
+    expect(
+      scoreBet({
+        ...actual,
+        betBrazilGoals: 2,
+        betOpponentGoals: 1,
+        actualBrazilScorerIds: [1, 2, 3],
+        betBrazilScorerIds: [3, 1],
+      }).points,
+    ).toBe(13);
   });
 });
 
@@ -54,7 +92,8 @@ describe('buildRanking', () => {
             submittedAt: submittedLate,
             brazilGoals: 3,
             opponentGoals: 1,
-            match: { brazilGoals: 3, opponentGoals: 1 },
+            scorers: [],
+            match: { brazilGoals: 3, opponentGoals: 1, scorers: [] },
           },
         ],
       },
@@ -67,7 +106,8 @@ describe('buildRanking', () => {
             submittedAt: submittedEarly,
             brazilGoals: 3,
             opponentGoals: 1,
-            match: { brazilGoals: 3, opponentGoals: 1 },
+            scorers: [],
+            match: { brazilGoals: 3, opponentGoals: 1, scorers: [] },
           },
         ],
       },
@@ -80,7 +120,8 @@ describe('buildRanking', () => {
             submittedAt: submittedEarly,
             brazilGoals: 2,
             opponentGoals: 1,
-            match: { brazilGoals: 3, opponentGoals: 1 },
+            scorers: [],
+            match: { brazilGoals: 3, opponentGoals: 1, scorers: [] },
           },
         ],
       },

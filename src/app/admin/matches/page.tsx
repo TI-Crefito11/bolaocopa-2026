@@ -1,5 +1,6 @@
 import { AdminNav } from '@/components/AdminNav';
 import { MatchEditModal } from '@/components/MatchEditModal';
+import { AdminBrazilScorerFields } from '@/components/ScorerSelectors';
 import { StatusBadge, formatStatus } from '@/components/StatusBadge';
 import { deleteMatch, upsertMatch } from '@/lib/admin-actions';
 import { formatDateTime } from '@/lib/money';
@@ -15,7 +16,22 @@ type MatchesPageProps = {
 export default async function MatchesPage({ searchParams }: MatchesPageProps) {
   await requireAdminSession();
   const params = await searchParams;
-  const matches = await prisma.match.findMany({ orderBy: { kickoffAt: 'asc' } });
+  const [matches, players] = await Promise.all([
+    prisma.match.findMany({
+      include: {
+        scorers: {
+          include: { player: true },
+          orderBy: { position: 'asc' },
+        },
+      },
+      orderBy: { kickoffAt: 'asc' },
+    }),
+    prisma.player.findMany({
+      where: { active: true },
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true },
+    }),
+  ]);
 
   return (
     <div className="admin-page">
@@ -86,6 +102,7 @@ export default async function MatchesPage({ searchParams }: MatchesPageProps) {
                       ) : (
                         <span className="participant-bet-item">
                           {match.brazilGoals} × {match.opponentGoals}
+                          {match.scorers.length > 0 ? ` · ${match.scorers.map((scorer) => scorer.player.name).join(', ')}` : ''}
                         </span>
                       )}
                     </td>
@@ -121,10 +138,11 @@ export default async function MatchesPage({ searchParams }: MatchesPageProps) {
                           <fieldset className="form-group">
                             <legend>Resultado</legend>
                             <div className="form-row">
-                              <label>
-                                Gols Brasil
-                                <input name="brazilGoals" type="number" min={0} max={99} defaultValue={match.brazilGoals ?? ''} />
-                              </label>
+                              <AdminBrazilScorerFields
+                                defaultGoals={match.brazilGoals}
+                                defaultScorerIds={match.scorers.map((scorer) => scorer.playerId)}
+                                players={players}
+                              />
                               <label>
                                 Gols adversário
                                 <input name="opponentGoals" type="number" min={0} max={99} defaultValue={match.opponentGoals ?? ''} />

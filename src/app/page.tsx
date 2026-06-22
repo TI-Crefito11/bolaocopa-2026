@@ -65,7 +65,9 @@ export default async function HomePage() {
             <li><span className="info-pts">5</span> Vencedor ou empate</li>
             <li><span className="info-pts">3</span> Apenas gols do Brasil</li>
             <li><span className="info-pts">3</span> Apenas gols do adversario</li>
+            <li><span className="info-pts">4</span> Por goleador do Brasil acertado</li>
           </ul>
+          <p className="info-note">Ex: acertou Neymar e Vinicius Jr como goleadores: +8 pontos extras.</p>
         </div>
       </section>
 

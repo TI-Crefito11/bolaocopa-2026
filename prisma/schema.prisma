@@ -61,6 +61,7 @@ model Match {
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
   bets           Bet[]
+  scorers        MatchScorer[]
 
   @@index([kickoffAt])
 }
@@ -74,9 +75,44 @@ model Bet {
   submittedAt   DateTime    @default(now())
   participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
   match         Match       @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  scorers       BetScorer[]
 
   @@unique([participantId, matchId])
   @@index([matchId])
+}
+
+model Player {
+  id           Int           @id @default(autoincrement())
+  name         String        @unique
+  active       Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  betScorers   BetScorer[]
+  matchScorers MatchScorer[]
+}
+
+model BetScorer {
+  id       Int    @id @default(autoincrement())
+  betId    Int
+  playerId Int
+  position Int
+  bet      Bet    @relation(fields: [betId], references: [id], onDelete: Cascade)
+  player   Player @relation(fields: [playerId], references: [id], onDelete: Restrict)
+
+  @@unique([betId, position])
+  @@index([playerId])
+}
+
+model MatchScorer {
+  id       Int    @id @default(autoincrement())
+  matchId  Int
+  playerId Int
+  position Int
+  match    Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  player   Player @relation(fields: [playerId], references: [id], onDelete: Restrict)
+
+  @@unique([matchId, position])
+  @@index([playerId])
 }
 
 model PoolTransaction {

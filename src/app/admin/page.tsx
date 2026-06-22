@@ -10,9 +10,10 @@ export const dynamic = 'force-dynamic';
 
 export default async function AdminHomePage() {
   await requireAdminSession();
-  const [matchCount, participantCount, financials] = await Promise.all([
+  const [matchCount, participantCount, playerCount, financials] = await Promise.all([
     prisma.match.count(),
     prisma.participant.count(),
+    prisma.player.count({ where: { active: true } }),
     getPoolFinancials(),
   ]);
 
@@ -43,6 +44,10 @@ export default async function AdminHomePage() {
             <strong>{participantCount}</strong>
           </div>
           <div className="metric admin-metric">
+            <span>Jogadores ativos</span>
+            <strong>{playerCount}</strong>
+          </div>
+          <div className="metric admin-metric">
             <span>Pagos</span>
             <strong>{financials.paidParticipants}</strong>
           </div>
@@ -66,6 +71,14 @@ export default async function AdminHomePage() {
             <div className="admin-action-body">
               <strong>Validar pagamentos</strong>
               <p>Confirme os pagamentos PIX dos participantes</p>
+            </div>
+            <span className="admin-action-arrow">→</span>
+          </Link>
+          <Link className="admin-action-card" href="/admin/players">
+            <span className="admin-action-icon">⚽</span>
+            <div className="admin-action-body">
+              <strong>Gerenciar jogadores</strong>
+              <p>Cadastre os goleadores selecionáveis nos palpites</p>
             </div>
             <span className="admin-action-arrow">→</span>
           </Link>

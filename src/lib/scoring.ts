@@ -3,6 +3,8 @@ export type ScoreInput = {
   actualOpponentGoals: number | null;
   betBrazilGoals: number;
   betOpponentGoals: number;
+  actualBrazilScorerIds?: number[];
+  betBrazilScorerIds?: number[];
 };
 
 export type BetScore = {
@@ -11,6 +13,7 @@ export type BetScore = {
   outcomeHit: boolean;
   brazilGoalsHit: boolean;
   opponentGoalsHit: boolean;
+  brazilScorerHits: number;
 };
 
 export type RankingBet = {
@@ -20,7 +23,9 @@ export type RankingBet = {
   match: {
     brazilGoals: number | null;
     opponentGoals: number | null;
+    scorers?: { playerId: number }[];
   };
+  scorers?: { playerId: number }[];
 };
 
 export type RankingParticipant = {
@@ -39,6 +44,7 @@ export type RankingRow = {
   outcomeHits: number;
   brazilGoalsHits: number;
   opponentGoalsHits: number;
+  brazilScorerHits: number;
   firstSubmittedAt: Date | null;
 };
 
@@ -48,7 +54,14 @@ function outcome(goalsA: number, goalsB: number): 'A' | 'B' | 'D' {
 }
 
 export function scoreBet(input: ScoreInput): BetScore {
-  const { actualBrazilGoals, actualOpponentGoals, betBrazilGoals, betOpponentGoals } = input;
+  const {
+    actualBrazilGoals,
+    actualOpponentGoals,
+    betBrazilGoals,
+    betOpponentGoals,
+    actualBrazilScorerIds = [],
+    betBrazilScorerIds = [],
+  } = input;
 
   if (actualBrazilGoals === null || actualOpponentGoals === null) {
     return {
@@ -57,6 +70,7 @@ export function scoreBet(input: ScoreInput): BetScore {
       outcomeHit: false,
       brazilGoalsHit: false,
       opponentGoalsHit: false,
+      brazilScorerHits: 0,
     };
   }
 
@@ -66,6 +80,7 @@ export function scoreBet(input: ScoreInput): BetScore {
     outcome(actualBrazilGoals, actualOpponentGoals) === outcome(betBrazilGoals, betOpponentGoals);
   const brazilGoalsHit = actualBrazilGoals === betBrazilGoals;
   const opponentGoalsHit = actualOpponentGoals === betOpponentGoals;
+  const brazilScorerHits = countScorerHits(actualBrazilScorerIds, betBrazilScorerIds);
 
   // Precedence follows the provided examples: 3x0 vs 3x1 scores Brazil goals (3),
   // while 2x1 vs 3x1 scores winner (5).
@@ -79,8 +94,25 @@ export function scoreBet(input: ScoreInput): BetScore {
   } else if (opponentGoalsHit) {
     points = 3;
   }
+  points += brazilScorerHits * 4;
 
-  return { points, exactScoreHit, outcomeHit, brazilGoalsHit, opponentGoalsHit };
+  return { points, exactScoreHit, outcomeHit, brazilGoalsHit, opponentGoalsHit, brazilScorerHits };
+}
+
+function countScorerHits(actualPlayerIds: number[], betPlayerIds: number[]): number {
+  const remainingActual = new Map<number, number>();
+  for (const playerId of actualPlayerIds) {
+    remainingActual.set(playerId, (remainingActual.get(playerId) ?? 0) + 1);
+  }
+
+  let hits = 0;
+  for (const playerId of betPlayerIds) {
+    const remaining = remainingActual.get(playerId) ?? 0;
+    if (remaining <= 0) continue;
+    hits += 1;
+    remainingActual.set(playerId, remaining - 1);
+  }
+  return hits;
 }
 
 export function buildRanking(participants: RankingParticipant[]): RankingRow[] {
@@ -93,6 +125,8 @@ export function buildRanking(participants: RankingParticipant[]): RankingRow[] {
             actualOpponentGoals: bet.match.opponentGoals,
             betBrazilGoals: bet.brazilGoals,
             betOpponentGoals: bet.opponentGoals,
+            actualBrazilScorerIds: bet.match.scorers?.map((scorer) => scorer.playerId),
+            betBrazilScorerIds: bet.scorers?.map((scorer) => scorer.playerId),
           });
 
           row.points += score.points;
@@ -100,6 +134,7 @@ export function buildRanking(participants: RankingParticipant[]): RankingRow[] {
           row.outcomeHits += score.outcomeHit ? 1 : 0;
           row.brazilGoalsHits += score.brazilGoalsHit ? 1 : 0;
           row.opponentGoalsHits += score.opponentGoalsHit ? 1 : 0;
+          row.brazilScorerHits += score.brazilScorerHits;
           row.firstSubmittedAt =
             row.firstSubmittedAt === null || bet.submittedAt < row.firstSubmittedAt
               ? bet.submittedAt
@@ -115,6 +150,7 @@ export function buildRanking(participants: RankingParticipant[]): RankingRow[] {
           outcomeHits: 0,
           brazilGoalsHits: 0,
           opponentGoalsHits: 0,
+          brazilScorerHits: 0,
           firstSubmittedAt: null,
         },
       );

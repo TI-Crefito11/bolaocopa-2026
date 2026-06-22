@@ -8,7 +8,16 @@ export async function getRankingData() {
       include: {
         bets: {
           include: {
-            match: true,
+            scorers: {
+              orderBy: { position: 'asc' },
+            },
+            match: {
+              include: {
+                scorers: {
+                  orderBy: { position: 'asc' },
+                },
+              },
+            },
           },
         },
       },

@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { BetBrazilScorerFields } from '@/components/ScorerSelectors';
 import { submitBet } from '@/lib/public-actions';
 import { formatDateTime } from '@/lib/money';
 import { prisma } from '@/lib/prisma';
@@ -15,6 +16,11 @@ export default async function BetPage({ searchParams }: BetPageProps) {
   const matches = await prisma.match.findMany({
     where: { status: { not: 'FINISHED' } },
     orderBy: { kickoffAt: 'asc' },
+  });
+  const players = await prisma.player.findMany({
+    where: { active: true },
+    orderBy: { name: 'asc' },
+    select: { id: true, name: true },
   });
   const now = new Date();
 
@@ -73,18 +79,7 @@ export default async function BetPage({ searchParams }: BetPageProps) {
                       {closed ? <span className="status-badge status-badge-yellow">Encerrado</span> : null}
                     </div>
                     <div className="bet-score-row">
-                      <label className="score-col">
-                        <span className="score-team">Brasil</span>
-                        <input
-                          className="score-input"
-                          name={`match-${match.id}-brazil`}
-                          type="number"
-                          min={0}
-                          max={99}
-                          disabled={closed}
-                          placeholder="0"
-                        />
-                      </label>
+                      <BetBrazilScorerFields disabled={closed} matchId={match.id} players={players} />
                       <span className="score-sep">×</span>
                       <label className="score-col">
                         <span className="score-team">{match.opponent}</span>
@@ -121,6 +116,8 @@ export default async function BetPage({ searchParams }: BetPageProps) {
 
 function getBetErrorMessage(error: string): string {
   if (error === 'incomplete-bet') return 'Preencha os dois placares do jogo escolhido ou deixe o jogo em branco.';
+  if (error === 'incomplete-scorers') return 'Selecione um goleador do Brasil para cada gol informado.';
+  if (error === 'invalid-scorers') return 'Revise os goleadores selecionados.';
   if (error === 'invalid') return 'Revise os placares informados.';
   return 'Selecione pelo menos um jogo aberto para enviar a aposta.';
 }

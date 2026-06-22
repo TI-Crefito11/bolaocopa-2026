@@ -12,6 +12,7 @@ const betSchema = z.object({
 });
 
 const goalsSchema = z.coerce.number().int().min(0).max(99);
+const playerIdSchema = z.coerce.number().int().positive();
 
 export async function submitBet(formData: FormData): Promise<void> {
   const participantData = betSchema.parse({
@@ -20,12 +21,19 @@ export async function submitBet(formData: FormData): Promise<void> {
     phone: formData.get('phone'),
   });
 
-  const matches = await prisma.match.findMany({
-    where: { status: { not: 'FINISHED' } },
-    orderBy: { kickoffAt: 'asc' },
-  });
+  const [matches, activePlayers] = await Promise.all([
+    prisma.match.findMany({
+      where: { status: { not: 'FINISHED' } },
+      orderBy: { kickoffAt: 'asc' },
+    }),
+    prisma.player.findMany({
+      where: { active: true },
+      select: { id: true },
+    }),
+  ]);
 
   const now = new Date();
+  const activePlayerIds = new Set(activePlayers.map((player) => player.id));
   const bets = matches
     .map((match) => {
       const brazilGoalsValue = formData.get(`match-${match.id}-brazil`);
@@ -39,14 +47,20 @@ export async function submitBet(formData: FormData): Promise<void> {
       const brazilGoals = goalsSchema.safeParse(brazilGoalsValue);
       const opponentGoals = goalsSchema.safeParse(opponentGoalsValue);
       if (!brazilGoals.success || !opponentGoals.success) redirect('/bet?error=invalid');
+      const scorerIds = parseScorerIds(formData, `match-${match.id}-scorer`, brazilGoals.data);
+      if (scorerIds.some((playerId) => !activePlayerIds.has(playerId))) redirect('/bet?error=invalid-scorers');
 
       return {
         matchId: match.id,
         brazilGoals: brazilGoals.data,
         opponentGoals: opponentGoals.data,
+        scorerIds,
       };
     })
-    .filter((bet): bet is { matchId: number; brazilGoals: number; opponentGoals: number } => bet !== null);
+    .filter(
+      (bet): bet is { matchId: number; brazilGoals: number; opponentGoals: number; scorerIds: number[] } =>
+        bet !== null,
+    );
 
   if (bets.length === 0) redirect('/bet?error=no-open-matches');
 
@@ -65,23 +79,34 @@ export async function submitBet(formData: FormData): Promise<void> {
     });
 
     for (const bet of bets) {
-      await tx.bet.upsert({
+      const { scorerIds, ...betData } = bet;
+      const savedBet = await tx.bet.upsert({
         where: {
           participantId_matchId: {
             participantId: participant.id,
-            matchId: bet.matchId,
+            matchId: betData.matchId,
           },
         },
         update: {
-          brazilGoals: bet.brazilGoals,
-          opponentGoals: bet.opponentGoals,
+          brazilGoals: betData.brazilGoals,
+          opponentGoals: betData.opponentGoals,
           submittedAt: new Date(),
         },
         create: {
           participantId: participant.id,
-          ...bet,
+          ...betData,
         },
       });
+      await tx.betScorer.deleteMany({ where: { betId: savedBet.id } });
+      if (scorerIds.length > 0) {
+        await tx.betScorer.createMany({
+          data: scorerIds.map((playerId, position) => ({
+            betId: savedBet.id,
+            playerId,
+            position,
+          })),
+        });
+      }
     }
   });
 
@@ -91,4 +116,14 @@ export async function submitBet(formData: FormData): Promise<void> {
 
 function isBlank(value: FormDataEntryValue | null): boolean {
   return value === null || String(value).trim() === '';
+}
+
+function parseScorerIds(formData: FormData, fieldPrefix: string, totalGoals: number): number[] {
+  const scorerIds: number[] = [];
+  for (let position = 0; position < totalGoals; position++) {
+    const parsed = playerIdSchema.safeParse(formData.get(`${fieldPrefix}-${position}`));
+    if (!parsed.success) redirect('/bet?error=incomplete-scorers');
+    scorerIds.push(parsed.data);
+  }
+  return scorerIds;
 }
